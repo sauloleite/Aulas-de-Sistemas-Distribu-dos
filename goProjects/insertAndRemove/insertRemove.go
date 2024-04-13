@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -15,6 +16,7 @@ type User struct {
 
 func main() {
 	// Carrega os usuários do arquivo
+	fmt.Println("Servidor rodando localmente na porta 8080")
 	users, err := loadUsers()
 	if err != nil {
 		fmt.Println(err)
@@ -24,6 +26,19 @@ func main() {
 	// Manipuladores para diferentes rotas HTTP
 
 	// Manipulador para a rota de login
+
+	http.HandleFunc("/delete", func(w http.ResponseWriter, r *http.Request) {
+		// Extrai os valores do formulário HTTP para username e password
+		username := r.FormValue("username")
+		// Tente remover o usuário
+		err := removeUser(username)
+		if err != nil {
+			// Ser houver erro, retorna messagem de erro
+			fmt.Fprintf(w, "Nome de usuário não existe")
+			return
+		}
+		fmt.Fprintf(w, "Usuário removido com sucesso!")
+	})
 	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
 		// Extrai os valores do formulário HTTP para username e password
 		username := r.FormValue("username")
@@ -59,6 +74,16 @@ func main() {
 
 		w.Write(data)
 	})
+	http.HandleFunc("/remove", func(w http.ResponseWriter, r *http.Request) {
+		// Lê o conteúdo do arquivo HTML
+		data, err := ioutil.ReadFile("remove.html")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		w.Write(data)
+	})
 
 	// Inicia o servidor HTTP na porta 8080
 	http.ListenAndServe(":8080", nil)
@@ -87,11 +112,11 @@ func isValidUsername(users []User, username string) bool {
 	// Verifica se existe um usuário com o nome de usuário inserido
 	for _, user := range users {
 		if user.Username == username {
-			return true
+			return false
 		}
 	}
 
-	return false
+	return true
 }
 
 func saveUsers(users []User) error {
@@ -99,7 +124,36 @@ func saveUsers(users []User) error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile("user.json", data, 0644)
+	err = ioutil.WriteFile("users.json", data, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func removeUser(username string) error {
+	users, err := loadUsers()
+	if err != nil {
+		return err
+	}
+	var found bool
+	for i, user := range users {
+		if user.Username == username {
+			// Remove o usuário da lista
+			users = append(users[:i], users[i+1:]...)
+			found = true
+			break
+		}
+	}
+	if !found {
+		return errors.New("Usuário não encontrado")
+	}
+	//Salva a lista atualizada de usuários no arquivo
+	data, err := json.Marshal(users)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile("users.json", data, 0644)
 	if err != nil {
 		return err
 	}
