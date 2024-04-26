@@ -1,11 +1,138 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conversor de modedas</title>
+  <!-- Definição de metadados -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Título da página -->
+  <title>Conversor de Moedas</title>
+  <!-- Estilos CSS -->
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    /* Estilos gerais para o corpo da página */
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    /* Estilos para o título (centralizado com margem inferior) */
+
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    /* Estilos para o formulário (flexbox em coluna com itens centralizados) */
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    /* Estilos para as labels (bloco com margem inferior) */
+
+    input, select {
+      width: 200px;
+      padding: 5px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+    }
+    /* Estilos para inputs e selects (tamanho, padding, borda e margem inferior) */
+
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    /* Estilos para o botão de submit (padding, cor, fundo, borda e cursor) */
+
+    .resultado {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+    /* Estilos para a div de resultado (margem superior, borda e padding) */
+  </style>
 </head>
 <body>
-    <h1>Conversor de modedas</h1>
+  <!-- Título da página -->
+  <h1>Conversor de Moedas</h1>
+
+  <!-- Formulário de conversão -->
+  <form id="formConversao">
+    <label for="valor">Valor a converter:</label>
+    <!-- Campo de entrada numérica para o valor -->
+    <input type="number" id="valor" name="valor" required>
+
+    <label for="moedaOrigem">Moeda de origem:</label>
+    <!-- Menu suspenso para seleção da moeda de origem -->
+    <select id="moedaOrigem" name="moedaOrigem" required>
+      <option value="BRL">Real Brasileiro (BRL)</option>
+      <option value="USD">Dólar Americano (USD)</option>
+      <option value="EUR">Euro (EUR)</option>
+    </select>
+
+    <label for="moedaDestino">Moeda de destino:</label>
+    <!-- Menu suspenso para seleção da moeda de destino -->
+    <select id="moedaDestino" name="moedaDestino" required>
+      <option value="BRL">Real Brasileiro (BRL)</option>
+      <option value="USD">Dólar Americano (USD)</option>
+      <option value="EUR">Euro (EUR)</option>
+    </select>
+
+    <!-- Botão de envio do formulário -->
+    <button type="submit">Converter</button>
+  </form>
+
+  <!-- Contêiner para exibir o resultado da conversão -->
+  <div class="resultado" id="resultado"></div>
+
+  <!-- Script JavaScript para processar o formulário -->
+  <script>
+    const formConversao = document.getElementById('formConversao');
+    const resultado = document.getElementById('resultado');
+
+    // Adiciona um evento de escuta para o envio do formulário
+    formConversao.addEventListener('submit', function(event) {
+      // Previne o comportamento padrão de envio do formulário
+      event.preventDefault();
+
+      // Captura os valores dos campos de entrada e seleção
+      const valor = parseFloat(document.getElementById('valor').value);
+      const moedaOrigem = document.getElementById('moedaOrigem').value;
+      const moedaDestino = document.getElementById('moedaDestino').value;
+
+      // Envia uma solicitação POST para o endpoint "/converter"
+      fetch('/converter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          valor: valor,
+          moedaOrigem: moedaOrigem,
+          moedaDestino: moedaDestino
+        })
+      })
+      // Manipula a resposta recebida
+      .then(response => response.json())
+      .then(data => {
+        // Atualiza o elemento de resultado com o valor convertido ou exibe um erro
+        if (data.valorConvertido) {
+          resultado.innerHTML = `Valor convertido: ${data.valorConvertido.toFixed(2)} ${moedaDestino}`;
+        } else {
+          resultado.innerHTML = `Erro: ${data.erro}`;
+        }
+      })
+      // Manipula erros durante o processamento da solicitação
+      .catch(error => {
+        resultado.innerHTML = `Erro: ${error.message}`;
+      });
+    });
+  </script>
 </body>
 </html>
