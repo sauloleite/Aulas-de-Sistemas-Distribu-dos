@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualização de usuário aleatório</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color:#f5f5f5;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            color:#333;
+        }
+        #randomUser {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        p {
+            margin: 10px 0;
+        }
+        strong {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dados do Usuário aleatório</h1>
+    <div id="randomUser"></div>
+    <script>
+        function loadRandomUser() {
+            fetch('/getRandomUser')
+                .then(response => response.json())
+                .then(data => {
+                    const user = data.results[0];
+                    const userHtml = `
+                    <p><strong>Nome:</strong> ${user.name.title} ${user.name.first} ${user.name.last}</p>
+                    <p><strong>Gênero:</strong> ${user.gender}</p>
+                    <p><strong>Email:</strong> ${user.email}</p>
+                    <p><strong>Cidade:</strong> ${user.location.city}</p>
+                    <p><strong>Estado:</strong> ${user.location.state}</p>
+                    <p><strong>País:</strong> ${user.location.country}</p>
+                    `;
+                    document.getElementById('randomUser').innerHTML = userHtml;
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar dados do usuário:',error);
+                });
+        }
+        document.addEventListener('DOMContentLoaded', loadRandomUser)
+    </script>
+</body>
+</html>
