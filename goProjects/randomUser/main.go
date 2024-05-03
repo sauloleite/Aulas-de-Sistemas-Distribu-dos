@@ -3,10 +3,11 @@ package main
 import (
 	// Importa pacotes necessários
 	// Para trabalhar com dados JSON
-	"fmt" // Para imprimir na saída padrão
-	// Para leitura e escrita de arquivos
-	"log"      // Para registro de mensagens
-	"net/http" // Para criar servidor HTTP
+	"encoding/json"
+	"fmt"       // Para imprimir na saída padrão
+	"io/ioutil" // Para leitura e escrita de arquivos
+	"log"       // Para registro de mensagens
+	"net/http"  // Para criar servidor HTTP
 )
 
 // Define estrutura para armazenar dados da resposta da API
@@ -41,4 +42,25 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 func getRandomUser(w http.ResponseWriter, r *http.Request) {
+	response, err := http.Get("https://randomuser.me/api/")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer response.Body.Close()
+	// Lê o corpo da resposta da API
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var randomUserResp RandomUserResponse
+	err = json.Unmarshal(body, &randomUserResp)
+	if err != nil {
+		log.Fatal(err)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(randomUserResp)
+	err = ioutil.WriteFile("randomuser.json", body, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
